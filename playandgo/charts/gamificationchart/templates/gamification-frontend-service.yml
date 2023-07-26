@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: gamification-frontend
+spec:
+  selector:
+    app: gamification
+    tier: frontend
+  ports:
+  - protocol: {{ .Values.frontend.service.protocol }}
+    port: {{ .Values.frontend.service.port }}
+    targetPort: {{ .Values.frontend.service.targetPort }}

@@ -1,0 +1,21 @@
+apiVersion: "acid.zalan.do/v1"
+kind: postgresql
+metadata:
+  name: {{ .Values.global.postgres.service }}
+spec:
+  teamId: {{ .Values.manifest.teamId }}
+  volume:
+    size: {{ .Values.manifest.size }}
+  numberOfInstances: {{ .Values.manifest.istances }}
+  users:
+    gamificationstats:  # database owner
+    - {{ .Values.manifest.stat1 }}
+    - {{ .Values.manifest.stat2 }}
+  databases:
+    gamificationstats: {{ .Values.manifest.gstats }}
+  preparedDatabases:
+    gamificationstats:
+      extensions:
+        timescaledb: {{ .Values.manifest.timescaledb }}
+  postgresql:
+    version: {{ .Values.manifest.postgreversion | quote}}

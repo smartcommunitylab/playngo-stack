@@ -1,0 +1,35 @@
+# FakeServerDeployment
+deploy:
+  replicas: 1
+  image: gessnerfl/fake-smtp-server:latest
+  port1: 8025
+  port2: 8080
+  port3: 8081
+  volumeName: fakeserver-volume
+  mountPath: /app/resources/application.yaml
+  subPath: application.yaml
+
+# FakeServerService
+service:
+  protocol1: TCP
+  name1: test1
+  protocol2: TCP
+  name2: test2
+  port2: 8080
+  targetPort2: 8080
+  protocol3: TCP
+  name3: test3
+  port3: 8081
+  targetPort3: 8081
+
+# Secret
+secret:
+  data: c2VydmVyOgogIHBvcnQ6IDgwODAKICBzaHV0ZG93bjogZ3JhY2VmdWwKCm1hbmFnZW1lbnQ6CiAgc2VydmVyOgogICAgcG9ydDogODA4MQogIGVuZHBvaW50czoKICAgIHdlYjoKICAgICAgZXhwb3N1cmU6CiAgICAgICAgaW5jbHVkZTogJyonCgpzcHJpbmc6CiAgcHJvZmlsZXM6CiAgICBhY3RpdmU6IGRlZmF1bHQKCiAgZGF0YXNvdXJjZToKICAgIHVybDogamRiYzpoMjptZW06bWFpbAogICAgdXNlcm5hbWU6IGFkbWluCiAgICBwYXNzd29yZDogVGVzdDEyMzQKICAgIGRyaXZlci1jbGFzcy1uYW1lOiBvcmcuaDIuRHJpdmVyCgogIGpwYToKICAgIGhpYmVybmF0ZToKICAgICAgZGRsLWF1dG86IHZhbGlkYXRlCgogIGRhdGE6CiAgICB3ZWI6CiAgICAgIHBhZ2VhYmxlOgogICAgICAgIHNpemUtcGFyYW1ldGVyOiBzaXplCiAgICAgICAgcGFnZS1wYXJhbWV0ZXI6IHBhZ2UKICAgICAgICBkZWZhdWx0LXBhZ2Utc2l6ZTogMTAKICAgICAgICBvbmUtaW5kZXhlZC1wYXJhbWV0ZXJzOiBmYWxzZQogICAgICAgIG1heC1wYWdlLXNpemU6IDEwMDAKCiAgaDI6CiAgICBjb25zb2xlOgogICAgICBlbmFibGVkOiB0cnVlCgogIG12YzoKICAgIGhpZGRlbm1ldGhvZDoKICAgICAgZmlsdGVyOgogICAgICAgIGVuYWJsZWQ6IHRydWUKCnNwcmluZ2RvYzoKICBzd2FnZ2VyLXVpOgogICAgcGF0aDogL3N3YWdnZXItdWkuaHRtbAoKZmFrZXNtdHA6CiAgcG9ydDogODAyNQogIGF1dGhlbnRpY2F0aW9uOgogICAgI1VzZXJuYW1lIG9mIHRoZSBjbGllbnQgdG8gYmUgYXV0aGVudGljYXRlZAogICAgdXNlcm5hbWU6IGphY29wby5sb2NhbAogICAgI1Bhc3N3b3JkIG9mIHRoZSBjbGllbnQgdG8gYmUgYXV0aGVudGljYXRlZAogICAgcGFzc3dvcmQ6IGZha2VQV0Qg
+
+# Global
+global:
+  imagePullSecret: ""
+  fakeSmtp:
+    service: ""
+    port: ""
+    app: ""

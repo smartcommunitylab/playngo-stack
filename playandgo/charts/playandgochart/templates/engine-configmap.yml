@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: playngo-engine-configmap
+data:
+  TZ: {{ .Values.config.tz }}
+  AAC_ISSUER_URI: http://{{ .Values.global.aac.service }}:{{ .Values.global.aac.port }}
+
+  GAMIFICATION_URL: http://{{ .Values.global.gamification.service }}:{{ .Values.global.gamification.port }}/gamification
+  
+  RABBITMQ_PG_HOST: {{ .Values.global.rabbit.service }}
+  RABBITMQ_PG_PORT: {{ .Values.global.rabbit.port | quote }}
+  RABBITMQ_PG_VIRTUALHOST: {{ .Values.global.rabbit.virtualHost }}
+
+  RABBITMQ_GE_HOST: {{ .Values.global.rabbit.service }}
+  RABBITMQ_GE_PORT: {{ .Values.global.rabbit.port | quote }}
+  RABBITMQ_GE_VIRTUALHOST: {{ .Values.global.rabbit.virtualHost }}
+  RABBITMQ_GE_EXCHANGE_NAME: {{ .Values.config.rabbitmqGeExchangeName }}
+  RABBITMQ_GE_ROUTING_KEY_PREFIX: {{ .Values.config.rabbitmqGeRoutingKeyPrefix }}
+
+  VALIDATION_SHAPE: {{ .Values.config.validationShape }}
+  NOTIFICATION_DIR: {{ .Values.config.notificationDir }}
+  SPRING_HTTP_MULTIPART_MAX_FILE_SIZE: {{ .Values.config.springHttpMultipartMaxFileSize }}
+  SPRING_HTTP_MULTIPART_MAX_REQUEST_SIZE: {{ .Values.config.springHttpMultipartMaxRequestSize }}
+  JAVA_OPTS: {{ .Values.config.javaOpts }}
+  MINIO_ENDPOINT: https://{{ .Values.global.minio.service }}:{{ .Values.global.minio.port }}
+  MINIO_BUCKET: {{ .Values.global.minio.bucket }}
+  AZIENDE_ENDPOINT: {{ .Values.config.aziendeEndpoint }}
+  SPRING_DATA_MONGODB_DATABASE: {{ .Values.config.mongoDbName }}
+  MAIL_HOST: {{ .Values.global.fakeSmtp.service }}
+  MAIL_PORT: {{ .Values.global.fakeSmtp.port | quote}}
+  MAIL_FROM: {{ .Values.config.mailFrom }}
+  MAIL_PROTOCOL: {{ .Values.global.fakeSmtp.protocol }}
+  MAIL_LOCALHOST: 
+
+  CHALLENGE_DIR: {{ .Values.config.challengeDir }}
+  PLAYGO_URL: 
+  LOGS: {{ .Values.config.logs }}
+
+  AAC_ADMIN_REALM: {{ .Values.config.aacAdminRealm }}
+
+  HSC_ENDPOINT: 
+
+  AAC_AUTHORIZATION_URI: http://{{ .Values.global.aac.service }}:{{ .Values.global.aac.port }}/oauth/authorize
+  AAC_TOKEN_URI: http://{{ .Values.global.aac.service }}:{{ .Values.global.aac.port }}/oauth/token
+  GAMIFICATION_CRON: {{ .Values.config.gamificationCron }}
+
+  LOG_LEVEL: {{ .Values.config.logLevel }}
+  ZIPKIN_ENDPOINT: {{ .Values.config.zipkinEndpoint }}
+  ZIPKIN_ENABLED: {{ .Values.config.zipkinEnabled | quote }}
+
+  SAMPLER_PROB: {{ .Values.config.samplerProb | quote }}

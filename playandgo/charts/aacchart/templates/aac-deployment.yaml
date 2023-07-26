@@ -1,0 +1,161 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aac-deployment
+spec:
+  selector:
+    matchLabels:
+      app: aac
+      tier: aac
+  replicas: {{ .Values.deploy.replicas }}
+  strategy:
+    type: {{ .Values.deploy.strategyType }}
+    rollingUpdate:
+      maxUnavailable: {{ .Values.deploy.maxUnavailable }}
+      maxSurge: {{ .Values.deploy.maxSurge }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/aac-configmap.yaml") . | sha256sum }}{{ include (print $.Template.BasePath "/bootstrap-secret.yaml") . | sha256sum }}
+      labels:
+        app: aac
+        tier: aac
+    spec:
+      securityContext:
+        fsGroup: {{ .Values.deploy.fsGroup }}
+      containers:
+      - name: aac
+        image: {{ .Values.deploy.aacImage }}
+        command: [{{ .Values.deploy.aacCommand1 }}, {{ .Values.deploy.aacCommand2 }}, {{ .Values.deploy.aacCommand3 }}]
+        securityContext:
+          runAsNonRoot: {{ .Values.deploy.runAsRoot }}
+          runAsUser: {{ .Values.deploy.runAsUser }}
+          runAsGroup: {{ .Values.deploy.runAsGroup }}
+        env:
+          - name: MAIL_USER
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.fakeserverCreds.existingSecret }}
+                name: {{ .Values.fakeserverCreds.existingSecret }}
+                key: {{ .Values.fakeserverCreds.passwordKey }}
+              {{- else }}
+                name: smtp-user
+                key: smtp-user-username
+              {{- end }}
+          - name: MAIL_PASS
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.fakeserverCreds.existingSecret }}
+                name: {{ .Values.fakeserverCreds.existingSecret }}
+                key: {{ .Values.fakeserverCreds.passwordKey }}
+              {{- else }}
+                name: smtp-user
+                key: smtp-user-pwd
+              {{- end }}
+          - name: JDBC_USER
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.mysqlCreds.existingSecret }}
+                name: {{ .Values.mysqlCreds.existingSecret }}
+                key: {{ .Values.mysqlCreds.passwordKey }}
+              {{- else }}
+                name: mysql-user
+                key: mysql-user-username
+              {{- end }}
+          - name: JDBC_PASS
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.mysqlCreds.existingSecret }}
+                name: {{ .Values.mysqlCreds.existingSecret }}
+                key: {{ .Values.mysqlCreds.passwordKey }}
+              {{- else }}
+                name: mysql-user
+                key: mysql-user-pwd
+              {{- end }}
+        resources:
+          limits:
+            memory: {{ .Values.deploy.memoryLimit }}
+          requests:
+            memory: {{ .Values.deploy.memoryRequest }}
+        imagePullPolicy: {{ .Values.deploy.imagePullPolicy }}
+        volumeMounts:
+        - name: {{ .Values.deploy.volumeName }}
+          mountPath: {{ .Values.deploy.mountPath }}
+          subPath: {{ .Values.deploy.subPath }}
+        envFrom:
+        - configMapRef:
+            name: aac-configmap
+      imagePullSecrets: {{ .Values.global.imagePullSecret }}
+      initContainers:
+      - name: init-create-mysqldb
+        image: mysql:5.7
+        command: ['bash', '-c', "until mysqladmin -h {{ .Values.global.mySql.service }} -P {{ .Values.global.mySql.port }} --password=$(CREATE_MYSQL_ADMIN) status; do echo waiting for database; sleep 2; done;
+        echo \"CREATE DATABASE IF NOT EXISTS {{ .Values.global.mySql.db }}\" | mysql -h {{ .Values.global.mySql.service }} --password=$(CREATE_MYSQL_ADMIN);
+        echo \"CREATE USER IF NOT EXISTS '$(CREATE_MYSQL_USER_USERNAME)'@'%' IDENTIFIED BY '$(CREATE_MYSQL_USER_PWD)'\" | mysql -h {{ .Values.global.mySql.service }} --password=$(CREATE_MYSQL_ADMIN);
+        echo \"GRANT ALL PRIVILEGES ON {{ .Values.global.mySql.db }}.* TO '$(CREATE_MYSQL_USER_USERNAME)'@'%'\" | mysql -h {{ .Values.global.mySql.service }} --password=$(CREATE_MYSQL_ADMIN);"]
+        env:
+          - name: CREATE_MYSQL_ADMIN
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.createMySqlAdminCreds.existingSecret }}
+                name: {{ .Values.createMySqlAdminCreds.existingSecret }}
+                key: {{ .Values.createMySqlAdminCreds.passwordKey }}
+              {{- else }}
+                name: mysqladmin
+                key: mysqladmin-user-pwd
+              {{- end }}
+          - name: CREATE_MYSQL_USER_USERNAME
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.createMySqlUserCreds.existingSecret }}
+                name: {{ .Values.createMySqlUserCreds.existingSecret }}
+                key: {{ .Values.createMySqlUserCreds.passwordKey }}
+              {{- else }}
+                name: mysql-user
+                key: mysql-user-username
+              {{- end }}
+          - name: CREATE_MYSQL_USER_PWD
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.createMySqlUserCreds.existingSecret }}
+                name: {{ .Values.createMySqlUserCreds.existingSecret }}
+                key: {{ .Values.createMySqlUserCreds.passwordKey }}
+              {{- else }}
+                name: mysql-user
+                key: mysql-user-pwd
+              {{- end }}
+      - name: init-mysql
+        image: mysql:5.7
+        command: ['sh', '-c', 'until mysqladmin -h {{ .Values.global.mySql.service }} -P {{ .Values.global.mySql.port }} --user=$(INITMYSQL_USER) --password=$(INITMYSQL_PWD) status; do echo waiting for database; sleep 2; done;']
+        env:
+          - name: INITMYSQL_USER
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.initMySqlCreds.existingSecret }}
+                name: {{ .Values.initMySqlCreds.existingSecret }}
+                key: {{ .Values.initMySqlCreds.passwordKey }}
+              {{- else }}
+                name: mysqladmin
+                key: mysqladmin-user-username
+              {{- end }}
+          - name: INITMYSQL_PWD
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.initMySqlCreds.existingSecret }}
+                name: {{ .Values.initMySqlCreds.existingSecret }}
+                key: {{ .Values.initMySqlCreds.passwordKey }}
+              {{- else }}
+                name: mysqladmin
+                key: mysqladmin-user-pwd
+              {{- end }}
+      - name: init-fakesmtp
+        image: busybox:latest
+        command: ['sh', '-c', 'until nc -vz {{ .Values.global.fakeSmtp.service }} {{ .Values.global.fakeSmtp.port }}; do echo "Waiting for fakesmtpserver-service service"; sleep 2; done;']
+      volumes:
+        - name: {{ .Values.deploy.volumeName }}
+          secret:
+          {{- if .Values.initMySqlCreds.existingSecret }}
+            name: {{ .Values.initMySqlCreds.existingSecret }}
+          {{- else }}
+            secretName: bootstrap
+          {{- end }}

@@ -1,0 +1,195 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gamification-engine
+spec:
+  selector:
+    matchLabels:
+      app: gamification
+      tier: engine
+  replicas: {{ .Values.deploy.replicas }}
+  strategy:
+    type: {{ .Values.deploy.type }}
+    rollingUpdate:
+      maxUnavailable: {{ .Values.deploy.maxUnavailable }}
+      maxSurge: {{ .Values.deploy.maxSurge }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/gamification-configmap.yml") . | sha256sum }}
+      labels:
+        app: gamification
+        tier: engine
+    spec:
+      securityContext:
+        fsGroup: {{ .Values.deploy.fsGroup }}
+      containers:
+      - name: gamification-engine
+        image: {{ .Values.deploy.containerImage }}
+        resources:
+          limits:
+            cpu: {{ .Values.deploy.cpuLimit }}
+            memory: {{ .Values.deploy.memoryLimit }}
+          requests:
+            cpu: {{ .Values.deploy.cpuRequest }}
+            memory: {{ .Values.deploy.memoryRequest }}
+        imagePullPolicy: {{ .Values.deploy.imgPullPolicy }}
+        securityContext:
+          runAsNonRoot: {{ .Values.deploy.runAsNonRoot }}
+          runAsUser: {{ .Values.deploy.runAsUser }}
+          runAsGroup: {{ .Values.deploy.runAsGroup }}
+        ports:
+          - containerPort: {{ .Values.deploy.port1 }}
+          - containerPort: {{ .Values.deploy.port2 }}
+        # readinessProbe:
+        #   httpGet:
+        #     path: /manage/health
+        #     port: 6021
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        # livenessProbe:
+        #   httpGet:
+        #     path: /manage/health
+        #     port: 6021
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        envFrom:
+          - configMapRef:
+              name: gamification-engine-configmap
+        env:
+          - name: FOLDER_INPUT
+            valueFrom:
+              configMapKeyRef:
+                name: gamification-engine-configmap
+                key: {{ .Values.deploy.mapKey }}
+          - name: CONN_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.manifest.gstats }}.postgresql-gm-cluster.credentials.postgresql.acid.zalan.do
+                key: username
+          - name: CONN_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.manifest.gstats }}.postgresql-gm-cluster.credentials.postgresql.acid.zalan.do
+                key: password
+          - name: POSTGRES_URL
+            value: "jdbc:postgresql://{{ .Values.global.postgres.service }}:5432/{{ .Values.manifest.gstats }}?user=$(CONN_USERNAME)&password=$(CONN_PASSWORD)&connectTimeout=5"
+          - name: MONGODBGAM_CONNECTIONSTRING
+            valueFrom:
+              secretKeyRef:
+                name: playngo-dev-mongodb-admin-mongodb-gamification-engine
+                key: connectionString.standardSrv
+          - name: SPRING_DATA_MONGODB_URL
+            value: "$(MONGODBGAM_CONNECTIONSTRING)&readPreference=secondary"
+          - name: RABBITMQ_USER
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.rabbituserGe.existingSecret }}
+                name: {{ .Values.rabbituserGe.existingSecret }}
+                key: {{ .Values.rabbituserGe.passwordKey }}
+              {{- else }}
+                name: rabbituser-ge
+                key: username
+              {{- end }}
+          - name: RABBITMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.rabbituserGe.existingSecret }}
+                name: {{ .Values.rabbituserGe.existingSecret }}
+                key: {{ .Values.rabbituserGe.passwordKey }}
+              {{- else }}
+                name: rabbituser-ge
+                key: password
+              {{- end }}
+        volumeMounts:
+        #   - name: import
+        #     mountPath: /home/gamification/data/import
+        #   - name: export
+        #     mountPath: /home/gamification/data/export
+          - name: {{ .Values.volume.name }}
+            mountPath: {{ .Values.volume.mountPath }}
+          # - name: logs
+          #   mountPath: /home/gamification/logs
+      # - name: gamification-log2timescaledb
+      #   image: smartcommunitylab/gamification-log2timescaledb:playAndGo-dev-v2-latest2
+      #   resources:
+      #     limits:
+      #       cpu: 500m
+      #       memory: "512Mi"
+      #     requests:
+      #       cpu: 200m
+      #       memory: "256Mi"
+      #   imagePullPolicy: "Always"
+      #   env:
+      #     - name: FOLDER_INPUT
+      #       valueFrom:
+      #         configMapKeyRef:
+      #           name: gamification-engine-configmap
+      #           key: LOG_PATH
+      #     - name: CONN_URL
+      #       valueFrom:
+      #         secretKeyRef:
+      #           name: gamification-stats-psql-url
+      #           key: url
+      #   volumeMounts:
+      #     - name: logs
+      #       mountPath: /home/gamification/logs
+      imagePullSecrets: {{ .Values.global.imagePullSecret }}
+      initContainers:
+      - name: init-rabbit
+        image: curlimages/curl:7.85.0
+        command: ['sh', '-c', "until curl http://{{ .Values.global.rabbit.service }}:15672 -m 3; do echo waiting for rabbit service; sleep 2; done"]
+      - name: init-postgres
+        image: postgres:11
+        command: ['bash', '-c', "until pg_isready -h {{ .Values.global.postgres.service }} -p 5432; do echo waiting for postgres service; sleep 2; done;"]
+      - name: init-mongo
+        image: bitnami/mongodb
+        command: ['sh', '-c', "until mongostat --username $(INITMONGO_USERNAME) --password $(INITMONGO_PWD) --host {{ .Values.global.mongo.service }} --port 27017 --authenticationDatabase $(INITMONGO_DB) -n 3; do echo waiting for mongo service; sleep 2; done"]
+        env:
+          - name: INITMONGO_USERNAME
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.mongoAdmin.existingSecret }}
+                name: {{ .Values.mongoAdmin.existingSecret }}
+                key: {{ .Values.mongoAdmin.passwordKey }}
+              {{- else }}
+                name: mongoadmin
+                key: mongoadmin-username
+              {{- end }}
+          - name: INITMONGO_PWD
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.mongoAdmin.existingSecret }}
+                name: {{ .Values.mongoAdmin.existingSecret }}
+                key: {{ .Values.mongoAdmin.passwordKey }}
+              {{- else }}
+                name: mongoadmin
+                key: mongoadmin-pwd
+              {{- end }}
+          - name: INITMONGO_DB
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.mongoAuthDb.existingSecret }}
+                name: {{ .Values.mongoAuthDb.existingSecret }}
+                key: {{ .Values.mongoAuthDb.passwordKey }}
+              {{- else }}
+                name: mongo-authdb
+                key: db
+              {{- end }}
+      volumes:
+        # - name: import
+        #   persistentVolumeClaim:
+        #     claimName: gamification-engine-import-pvc
+        # - name: export
+        #   persistentVolumeClaim:
+        #     claimName: gamification-engine-export-pvc
+        - name: user-file
+          secret:
+            {{- if .Values.users.existingSecret }}
+              secretName: {{ .Values.users.existingSecret }}
+            {{- else }}
+              secretName: users
+            {{- end }}
+        # - name: logs
+        #   persistentVolumeClaim:
+        #     claimName: gamification-engine-logs-pvc

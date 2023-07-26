@@ -1,0 +1,290 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: playngo-engine
+spec:
+  selector:
+    matchLabels:
+      app: playngo
+      tier: engine
+  replicas: {{ .Values.deploy.replicas }}
+  strategy:
+    type: {{ .Values.deploy.strategyType }}
+    rollingUpdate:
+      maxUnavailable: {{ .Values.deploy.maxUnavailable }}
+      maxSurge: {{ .Values.deploy.maxSurge }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/engine-configmap.yml") . | sha256sum }}
+      labels:
+        app: playngo
+        tier: engine
+    spec:
+      securityContext:
+        fsGroup: {{ .Values.deploy.fsGroup }}
+      containers:
+      - name: playngo-engine
+        image: {{ .Values.deploy.image }}
+        securityContext:
+          runAsNonRoot: {{ .Values.deploy.runAsNonRoot }}
+          runAsUser: {{ .Values.deploy.runAsUser }}
+          runAsGroup: {{ .Values.deploy.runAsGroup }}
+        env:
+          - name: GAMIFICATION_USER
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.gamification.existingSecret }}
+                name: {{ .Values.creds.gamification.existingSecret }}
+                key: {{ .Values.creds.gamification.passwordKey }}
+              {{- else }}
+                name: gamification
+                key: gamification-username
+              {{- end }}
+          - name: GAMIFICATION_PASSWORD
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.gamification.existingSecret }}
+                name: {{ .Values.creds.gamification.existingSecret }}
+                key: {{ .Values.creds.gamification.passwordKey }}
+              {{- else }}
+                name: gamification
+                key: gamification-pwd
+              {{- end }}
+          - name: GAMIFICATION_SK1
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.gamification.existingSecret }}
+                name: {{ .Values.creds.gamification.existingSecret }}
+                key: {{ .Values.creds.gamification.passwordKey }}
+              {{- else }}
+                name: gamification
+                key: gamification-sk1
+              {{- end }}
+          - name: GAMIFICATION_SK2
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.gamification.existingSecret }}
+                name: {{ .Values.creds.gamification.existingSecret }}
+                key: {{ .Values.creds.gamification.passwordKey }}
+              {{- else }}
+                name: gamification
+                key: gamification-sk2
+              {{- end }}
+          - name: RABBITMQ_PG_USER
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.rabbitUserPg.existingSecret }}
+                name: {{ .Values.creds.rabbitUserPg.existingSecret }}
+                key: {{ .Values.creds.rabbitUserPg.passwordKey }}
+              {{- else }}
+                name: rabbituser-pg
+                key: username
+              {{- end }}
+          - name: RABBITMQ_PG_PASSWORD
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.rabbitUserPg.existingSecret }}
+                name: {{ .Values.creds.rabbitUserPg.existingSecret }}
+                key: {{ .Values.creds.rabbitUserPg.passwordKey }}
+              {{- else }}
+                name: rabbituser-pg
+                key: password
+              {{- end }}
+          - name: RABBITMQ_GE_USER
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.rabbitUserGe.existingSecret }}
+                name: {{ .Values.creds.rabbitUserGe.existingSecret }}
+                key: {{ .Values.creds.rabbitUserGe.passwordKey }}
+              {{- else }}
+                name: rabbituser-ge
+                key: username
+              {{- end }}
+          - name: RABBITMQ_GE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.rabbitUserGe.existingSecret }}
+                name: {{ .Values.creds.rabbitUserGe.existingSecret }}
+                key: {{ .Values.creds.rabbitUserGe.passwordKey }}
+              {{- else }}
+                name: rabbituser-ge
+                key: password
+              {{- end }}
+          - name: SPRING_DATA_MONGODB_CONNECTIONSTRING
+            valueFrom:
+              secretKeyRef:
+                name: playngo-dev-mongodb-admin-playngo-engine
+                key: connectionString.standardSrv
+          - name: SPRING_DATA_MONGODB_URL
+            value: "$(SPRING_DATA_MONGODB_CONNECTIONSTRING)&readPreference=secondary"
+          - name: MINIO_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.minio.existingSecret }}
+                name: {{ .Values.creds.minio.existingSecret }}
+                key: {{ .Values.creds.minio.passwordKey }}
+              {{- else }}
+                name: minio
+                key: minio-ak
+              {{- end }}
+          - name: MINIO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.minio.existingSecret }}
+                name: {{ .Values.creds.minio.existingSecret }}
+                key: {{ .Values.creds.minio.passwordKey }}
+              {{- else }}
+                name: minio
+                key: minio-sk
+              {{- end }}
+          - name: MAIL_USER
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.smtpUser.existingSecret }}
+                name: {{ .Values.creds.smtpUser.existingSecret }}
+                key: {{ .Values.creds.smtpUser.passwordKey }}
+              {{- else }}
+                name: smtp-user
+                key: smtp-user-username
+              {{- end }}
+          - name: MAIL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.smtpUser.existingSecret }}
+                name: {{ .Values.creds.smtpUser.existingSecret }}
+                key: {{ .Values.creds.smtpUser.passwordKey }}
+              {{- else }}
+                name: smtp-user
+                key: smtp-user-pwd
+              {{- end }}
+          - name: AAC_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: aac
+                key: aac-clientid
+          - name: AAC_ADMIN_CLIENT_ID
+            valueFrom:
+              secretKeyRef:
+                name: aac
+                key: aac-clientid
+          - name: AAC_ADMIN_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: aac
+                key: aac-clientsecret
+          - name: AAC_CLIENT_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: aac
+                key: aac-clientsecret
+          - name: AZIENDE_USER
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.aziende.existingSecret }}
+                name: {{ .Values.creds.aziende.existingSecret }}
+                key: {{ .Values.creds.aziende.passwordKey }}
+              {{- else }}
+                name: aziende
+                key: aziende-username
+              {{- end }}
+          - name: AZIENDE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.aziende.existingSecret }}
+                name: {{ .Values.creds.aziende.existingSecret }}
+                key: {{ .Values.creds.aziende.passwordKey }}
+              {{- else }}
+                name: aziende
+                key: aziende-pwd
+              {{- end }}
+          - name: GCM_SENDER_API_KEY
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.gcmSender.existingSecret }}
+                name: {{ .Values.creds.gcmSender.existingSecret }}
+                key: {{ .Values.creds.gcmSender.passwordKey }}
+              {{- else }}
+                name: gcm-sender
+                key: gcm-sender-apikey
+              {{- end }}
+          - name: GCM_SENDER_ID
+            valueFrom:
+              secretKeyRef:
+              {{- if .Values.creds.gcmSender.existingSecret }}
+                name: {{ .Values.creds.gcmSender.existingSecret }}
+                key: {{ .Values.creds.gcmSender.passwordKey }}
+              {{- else }}
+                name: gcm-sender
+                key: gcm-sender-id
+              {{- end }}
+        resources:
+          limits:
+            memory: {{ .Values.deploy.memoryLimit }}
+          requests:
+            memory: {{ .Values.deploy.memoryReqyest }}
+        imagePullPolicy: {{ .Values.deploy.imagePullPolicy }}
+        ports:
+          - containerPort: {{ .Values.deploy.containerPort }}
+        # readinessProbe:
+        #   httpGet:
+        #     path: /manage/health
+        #     port: 6021
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        # livenessProbe:
+        #   httpGet:
+        #     path: /manage/health
+        #     port: 6021
+        #   initialDelaySeconds: 30
+        #   periodSeconds: 10
+        envFrom:
+          - configMapRef:
+              name: playngo-engine-configmap
+        volumeMounts:
+          - name: {{ .Values.deploy.volume1Name }}
+            mountPath: {{ .Values.deploy.volume1Path }}
+          - name: {{ .Values.deploy.volume2Name }}
+            mountPath: {{ .Values.deploy.volume2Path }}
+          - name: {{ .Values.deploy.volume3Name }}
+            mountPath: {{ .Values.deploy.volume3Path }}
+          - name: {{ .Values.deploy.volume4Name }}
+            mountPath: {{ .Values.deploy.volume4Path }}
+      imagePullSecrets: {{ .Values.global.imagePullSecret }}
+      initContainers:
+      - name: init-minio
+        image: curlimages/curl:7.85.0
+        command: ['sh', '-c', "until curl -k https://{{ .Values.global.minio.console }}:{{ .Values.global.minio.consolePort }}; do echo waiting for minio; sleep 2; done"]
+      - name: init-create-minio-bucket
+        image: bitnami/minio
+        command: ['bash', '-c', 'mc alias set myminio https://{{ .Values.global.minio.name }}-{{ .Values.global.minio.poolName }}-0.{{ .Values.global.minio.service }}.{{.Release.Namespace}}.svc.cluster.local:{{ .Values.global.minio.port }} playandgo playandgo; mc mb --ignore-existing myminio/{{ .Values.global.minio.bucket }};']
+      - name: init-aac
+        image: curlimages/curl:7.85.0
+        command: ['sh', '-c', "until curl http://{{ .Values.global.aac.service }}:{{ .Values.global.aac.port }}/health -m 3; do echo waiting for aac service; sleep 2; done"]
+      - name: init-gamification
+        image: curlimages/curl:7.85.0
+        command: ['sh', '-c', "until curl http://{{ .Values.global.gamification.service }}:{{ .Values.global.gamification.port }} -m 3; do echo waiting for gamification service; sleep 2; done"]
+      - name: init-files
+        image: iaean/subversion
+        volumeMounts:
+          - name: {{ .Values.deploy.volume1Name }}
+            mountPath: {{ .Values.deploy.volume1Path }}
+          - name: {{ .Values.deploy.volume2Name }}
+            mountPath: {{ .Values.deploy.volume2Path }}
+          - name: {{ .Values.deploy.volume3Name }}
+            mountPath: {{ .Values.deploy.volume3Path }}
+          - name: {{ .Values.deploy.volume4Name }}
+            mountPath: {{ .Values.deploy.volume4Path }}
+        command: ["sh", "-c", "svn export https://github.com/smartcommunitylab/dslab.playgo-engine/trunk/src/main/resources;
+                   cp -a resources/challenges/. {{ .Values.config.challengeDir }};
+                   cp -a resources/notification/. {{ .Values.config.notificationDir }};
+                   cp -a resources/validation/. {{ .Values.config.validationShape }};"]
+      volumes:
+        - name: {{ .Values.volume.name1 }}
+          emptyDir: {}
+        - name: {{ .Values.volume.name2 }}
+          emptyDir: {}
+        - name: {{ .Values.volume.name3 }}
+          emptyDir: {}
+        - name: {{ .Values.volume.name4 }}
+          emptyDir: {}

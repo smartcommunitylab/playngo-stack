@@ -1,0 +1,39 @@
+dependencies:
+- name: community-operator
+  repository: https://mongodb.github.io/helm-charts
+  version: 0.8.0
+- name: rabbitmq-cluster-operator
+  repository: https://charts.bitnami.com/bitnami
+  version: 3.5.0
+- name: postgres-operator
+  repository: https://opensource.zalando.com/postgres-operator/charts/postgres-operator
+  version: 1.10.0
+- name: minio-operator
+  repository: https://operator.min.io/
+  version: 4.3.7
+- name: aacchart
+  repository: file://charts/aacchart
+  version: 0.1.0
+- name: fakesmtpchart
+  repository: file://charts/fakesmtpchart
+  version: 0.1.0
+- name: gamificationchart
+  repository: file://charts/gamificationchart
+  version: 0.1.0
+- name: miniochart
+  repository: file://charts/miniochart
+  version: 0.1.0
+- name: mongoDB
+  repository: file://charts/mongoDB
+  version: 0.1.0
+- name: mysqlchart
+  repository: file://charts/mysqlchart
+  version: 0.1.0
+- name: playandgochart
+  repository: file://charts/playandgochart
+  version: 0.1.0
+- name: rabbitchart
+  repository: file://charts/rabbitchart
+  version: 0.1.0
+digest: sha256:b2cb579aa5006c85f9aeaabb20b2e31d11c550b73398c708b9a6d4eda5199b2f
+generated: "2023-07-19T13:42:02.302247721+02:00"

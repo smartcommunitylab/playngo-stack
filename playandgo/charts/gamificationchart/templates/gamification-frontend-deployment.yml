@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gamification-frontend
+spec:
+  selector:
+    matchLabels:
+      app: gamification
+      tier: frontend
+  replicas: {{ .Values.frontend.replicas }}
+  strategy:
+    type: {{ .Values.frontend.strategyType }}
+    rollingUpdate:
+      maxUnavailable: {{ .Values.frontend.maxUnavailable }}
+      maxSurge: {{ .Values.frontend.maxSurge }}
+  template:
+    metadata:
+      labels:
+        app: gamification
+        tier: frontend
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1005
+        runAsGroup: 1005
+        fsGroup: 1005
+      containers:
+      - name: gamification-frontend
+        image: {{ .Values.frontend.image }}
+        resources:
+          limits:
+            cpu: {{ .Values.frontend.cpuLimit }}
+            memory: {{ .Values.frontend.memoryLimit }}
+          requests:
+            cpu: {{ .Values.frontend.cpuRequest }}
+            memory: {{ .Values.frontend.memoryRequest }}
+        imagePullPolicy: {{ .Values.frontend.imagePullPolicy }}
+        ports:
+          - containerPort: {{ .Values.frontend.containerPort }}

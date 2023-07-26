@@ -1,0 +1,56 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: Vhost
+metadata:
+  name: gamification-vhost # name of this custom resource
+spec:
+  name: {{ .Values.global.rabbit.virtualHost }} # name of the vhost
+  rabbitmqClusterReference:
+    name: {{ .Values.global.rabbit.service }}
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: User
+metadata:
+  name: gamification-rabbit-user
+spec:
+  rabbitmqClusterReference:
+    name: {{ .Values.global.rabbit.service }}
+  importCredentialsSecret:
+    name: rabbituser-ge # name of the secret
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: User
+metadata:
+  name: playngo-rabbit-user
+spec:
+  rabbitmqClusterReference:
+    name: {{ .Values.global.rabbit.service }}
+  importCredentialsSecret:
+    name: rabbituser-pg # name of the secret
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Permission
+metadata:
+  name: gamification-rabbit-permissions
+spec:
+  vhost: "{{ .Values.global.rabbit.virtualHost }}"
+  user: "gamification-engine" # name of the RabbitMQ user
+  permissions:
+    write: ".*"
+    configure: ".*"
+    read: ".*"
+  rabbitmqClusterReference:
+    name: {{ .Values.global.rabbit.service }}
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Permission
+metadata:
+  name: playngo-rabbit-permissions
+spec:
+  vhost: "{{ .Values.global.rabbit.virtualHost }}"
+  user: "playngo-engine" # name of the RabbitMQ user
+  permissions:
+    write: ".*"
+    configure: ".*"
+    read: ".*"
+  rabbitmqClusterReference:
+    name: {{ .Values.global.rabbit.service }}

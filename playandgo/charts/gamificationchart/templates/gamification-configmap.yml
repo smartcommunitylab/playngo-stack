@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gamification-engine-configmap
+data:
+  TZ: {{ .Values.config.tz }}
+  SERVER_PORT: {{ .Values.config.serverPort | quote }}
+  SERVER_CONTEXTPATH: {{ .Values.config.serverContextPath }}
+  #GAMIFICATION_REVERSEPROXY: {{ .Values.config.gamificationReverseProxy }}
+  LOG_PATH: {{ .Values.config.logPath }}
+  MANAGEMENT_CONTEXT: {{ .Values.config.managementContext }}
+  MANAGEMENT_PORT: {{ .Values.config.managementPort | quote }}
+  MANAGEMENT_SECURITY_ENABLED: {{ .Values.config.managementSecurityEnabled | quote }}
+  MONGO_DBNAME: {{ .Values.config.mongoDbName }}
+  AAC_ROLES_CONTEXT: {{ .Values.config.aacRolesContext }}
+  AAC_ROLES_ROLE: {{ .Values.config.aacRolesRole }}
+  JAVA_OPTS: {{ .Values.config.javaOpts }}
+  # AAC_URL:
+  # AAC_CLIENTID:
+  # AAC_CLIENTSECRET:
+  TASK_PERSISTENCE_ACTIVATE: {{ .Values.config.taskPersistenceActivate | quote }}
+  STATS_LOGGER_LEVEL: {{ .Values.config.statsLoggerLevel }}
+  # USERS_FILE: {{ .Values.config.usersFile }}
+  IMPORT_DIR: {{ .Values.config.importDir }}
+  EXPORT_DIR: {{ .Values.config.exportDir }}
+
+  RABBITMQ_ENABLED: {{ .Values.config.rabbitmqEnabled | quote }}
+  RABBITMQ_HOST: {{ .Values.global.rabbit.cluster }}
+  RABBITMQ_VIRTUALHOST: {{ .Values.global.rabbit.virtualHost }}
+  RABBITMQ_PORT: {{ .Values.global.rabbit.port | quote }}
+  RABBITMQ_PNGEXCHANGENAME: {{ .Values.config.rabbitmqPngExchangeName }}
+  RABBITMQ_PNGROUTINGKEYPREFIX: {{ .Values.config.rabbitmqPngRoutingKeyPrefix }}
+  
+  ZIPKIN_ENDPOINT: {{ .Values.config.zipkinEndpoint }}
+  ZIPKIN_ENABLED: {{ .Values.config.zipkinEnabled | quote }}
+
+  SAMPLER_PROB: {{ .Values.config.samplerProb | quote }}

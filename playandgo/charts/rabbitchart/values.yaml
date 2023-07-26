@@ -1,0 +1,20 @@
+# Rabbit
+rabbit:
+  replicas: 3
+  cpu1: 1
+  memory1: 2Gi
+  cpu2: 2
+  memory2: 2Gi
+  addConfig1: cluster_partition_handling = pause_minority
+  addConfig2: vm_memory_high_watermark_paging_ratio = 0.99
+  addConfig3: disk_free_limit.relative = 1.0
+  addConfig4: collect_statistics_interval = 10000
+  storageClassName: standard
+  storage: "32Gi"
+
+# Global:
+global:
+  imagePullSecret: ""
+  rabbit:
+    service: ""
+    virtualHost: ""

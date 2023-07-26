@@ -1,0 +1,36 @@
+apiVersion: minio.min.io/v2
+kind: Tenant
+metadata:
+  name: {{ .Values.global.minio.name }}
+spec:
+  credsSecret:
+    {{- if .Values.creds.existingSecret }}
+      name: {{ .Values.creds.existingSecret }}
+    {{- else }}
+      name: {{ .Values.secret.name }}
+    {{- end }}
+  imagePullSecret:
+    name: {{ .Values.minio.imagePullSecret }}
+  ## Specification for MinIO Pool(s) in this Tenant.
+  pools:
+    ## Servers specifies the number of MinIO Tenant Pods / Servers in this pool.
+    ## For standalone mode, supply 1. For distributed mode, supply 4 or more.
+    ## Note that the operator does not support upgrading from standalone to distributed mode.
+    - servers: {{ .Values.minio.servers }}
+      ## custom pool name
+      name: {{ .Values.global.minio.poolName }}
+      ## volumesPerServer specifies the number of volumes attached per MinIO Tenant Pod / Server.
+      volumesPerServer: {{ .Values.minio.volumesPerServer }}
+      ## This VolumeClaimTemplate is used across all the volumes provisioned for MinIO Tenant in this
+      ## Pool.
+      volumeClaimTemplate:
+        metadata:
+          name: {{ .Values.minio.volumeClaimName }}
+        spec:
+          accessModes:
+            - {{ .Values.minio.accessModes }}
+          resources:
+            requests:
+              storage: {{ .Values.minio.storage }}
+    
+    

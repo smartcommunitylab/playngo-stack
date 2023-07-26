@@ -1,0 +1,108 @@
+# AAC Config Map
+config:
+  jdbcDialect: org.hibernate.dialect.MySQL5Dialect
+  jdbcDriver: com.mysql.jdbc.Driver
+  bootstrapApply: "true"
+  bootstrap: file:///home/aac/bootstrap.yaml
+  logLevel: DEBUG
+
+# Global values
+global:
+  imagePullSecret: ""
+  mySql:
+    service: ""
+    port: ""
+    db: ""
+  fakeSmtp:
+    service: ""
+    port: ""
+    protocol: ""
+  aac:
+    service: ""
+    port: ""
+
+# AAC Deployment
+deploy:
+  replicas: 1
+  strategyType: RollingUpdate
+  maxUnavailable: 1
+  maxSurge: 1
+  fsGroup: 805
+  aacImage: smartcommunitylab/aac:4.x-latest
+  aacCommand1: "java"
+  aacCommand2: "org.springframework.boot.loader.JarLauncher"
+  aacCommand3: "-Dspring-boot.run.arguments=--logging.level.ROOT=DEBUG"
+  runAsNonRoot: true
+  runAsUser: 805
+  runAsGroup: 805
+  memoryLimit: "2048Mi"
+  memoryRequest: "256Mi"
+  imagePullPolicy: "Always"
+  volumeName: aac-volume
+  mountPath: /home/aac/bootstrap.yaml
+  subPath: bootstrap.yaml
+  
+
+# Creds
+fakeserverCreds:
+  existingSecret: ""
+  passwordKey: ""
+
+mysqlCreds:
+  existingSecret: ""
+  passwordKey: ""
+
+initMySqlCreds:
+  existingSecret: ""
+  passwordKey: ""
+
+createMySqlAdminCreds:
+  existingSecret: ""
+  passwordKey: ""
+
+createMySqlUserCreds:
+  existingSecret: ""
+  passwordKey: ""
+
+bootstrapCreds:
+  existingSecret: ""
+
+aacCreds:
+  existingSecret: ""
+  passwordKey: ""
+
+# Secret
+fakeserverSecret:
+  smtpUserPwd: fakePWD
+  smtpUserUsername: jacopo.local
+
+mysqlSecret:
+  mysqlUserPwd: aacPWD
+  mysqlUserUsername: user
+
+mysqlAdminSecret:
+  mysqladminUser: root
+  mysqladminPwd: pwd
+
+bootstrap:
+  clientId: "test-0000-12345-client"
+  uuid: 109990e9f5674a03ab1721e59e1ce05d
+  clientSecret: "eSHUuN24ao3FfWRm7CJYnuiK98sjuRg8"
+  usersUsername: test
+  usersEmail: test@local.it
+  username: test
+  credentialsPassword: test123
+  userId: 502e7f14-b6b3-49d3-8a00-ce2ed14f7a32
+
+
+# Ingress
+ingress:
+  annotations: {}
+  ingressClassName: ""
+  target: /
+  host: aac.home
+  path: /
+  pathType: Prefix
+  tlsHost: ""
+  certManager: ""
+  tlsEnabled: false

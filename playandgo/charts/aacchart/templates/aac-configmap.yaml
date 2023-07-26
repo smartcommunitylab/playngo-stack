@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aac-configmap
+data:
+  JDBC_DIALECT: {{ .Values.config.jdbcDialect }}
+  JDBC_DRIVER: {{ .Values.config.jdbcDriver }}
+  JDBC_URL: jdbc:mysql://{{ .Values.global.mySql.service }}:{{ .Values.global.mySql.port }}/{{ .Values.global.mySql.db }}
+  MAIL_HOST: {{ .Values.global.fakeSmtp.service }}
+  MAIL_PORT: {{ .Values.global.fakeSmtp.port | quote }}
+  MAIL_PROTOCOL: {{ .Values.global.fakeSmtp.protocol }}
+  BOOTSTRAP_APPLY: {{ .Values.config.bootstrapApply | quote }}
+  BOOTSTRAP: {{ .Values.config.bootstrap }}
+  LOG_LEVEL: {{ .Values.config.logLevel }}
+  APPLICATION_EXT_URL: http://{{ .Values.global.aac.service }}:{{ .Values.global.aac.port }}

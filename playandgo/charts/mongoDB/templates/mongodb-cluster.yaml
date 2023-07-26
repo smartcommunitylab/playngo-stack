@@ -1,0 +1,134 @@
+apiVersion: mongodbcommunity.mongodb.com/v1
+kind: MongoDBCommunity
+metadata:
+  name: playngo-dev-mongodb
+spec:
+  members: {{ .Values.mongo.members }}
+  type: {{ .Values.mongo.type }}
+  version: {{ .Values.mongo.version }}
+
+  # You can expose metrics for Prometheus polling using the
+  # `prometheus` entry.
+  prometheus:
+    # Metrics endpoint HTTP Basic Auth username
+    username: {{ .Values.mongo.promUser }}
+
+    # Metrics endpoint HTTP Basic Auth password
+    passwordSecretRef:
+      {{- if .Values.mongoMetricCreds.existingSecret }}
+        name: {{ .Values.mongoMetricCreds.existingSecret }}
+      {{- else }}
+        name: mongodb-metrics-endpoint-creds
+      {{- end }}
+
+    # Optional, defaults to `/metrics`
+    # metricsPath: /metrics
+
+    # Optional defaults to 9216
+    # port: 9216
+
+    # Prometheus endpoint can be configured to use HTTPS
+    # tlsSecretKeyRef:
+    #   name: "<kubernetes.io/tls secret name>"
+
+  security:
+    authentication:
+      modes: [{{ .Values.mongo.authMode }}]
+  users:
+    - name: {{ .Values.mongo.user1name }}
+      db: {{ .Values.mongo.user1db }}
+      passwordSecretRef: # a reference to the secret that will be used to generate the user's password
+        {{- if .Values.mongoAdminCredsCreds.existingSecret }}
+          name: {{ .Values.mongoAdminCredsCreds.existingSecret }}
+        {{- else }}
+        name: mongodb-admin-password
+        {{- end }}
+      roles:
+        - name: {{ .Values.mongo.user1role1name }}
+          db: {{ .Values.mongo.user1role1db }}
+        - name: {{ .Values.mongo.user1role2name }}
+          db: {{ .Values.mongo.user1role1db }}
+      scramCredentialsSecretName: admin-scram
+    - name: {{ .Values.mongo.user2name }}
+      db: {{ .Values.mongo.user2db }}
+      passwordSecretRef: # a reference to the secret that will be used to generate the user's password
+        {{- if .Values.mongoPlayngoCreds.existingSecret }}
+          name: {{ .Values.mongoPlayngoCreds.existingSecret }}
+        {{- else }}
+        name: mongodb-playngo-engine-password
+        {{- end }}
+      roles:
+        - name: {{ .Values.mongo.user2role1name }}
+          db: {{ .Values.mongo.user2role1db }}
+      scramCredentialsSecretName: playngo-engine-scram
+    - name: {{ .Values.mongo.user3name }}
+      db: {{ .Values.mongo.user3db }}
+      passwordSecretRef: # a reference to the secret that will be used to generate the user's password
+        {{- if .Values.mongoGamificationCreds.existingSecret }}
+          name: {{ .Values.mongoGamificationCreds.existingSecret }}
+        {{- else }}
+        name: mongodb-gamification-engine-password
+        {{- end }}
+      roles:
+        - name: {{ .Values.mongo.user3role1name }}
+          db: {{ .Values.mongo.user3role1db }}
+      scramCredentialsSecretName: gamification-engine-scram
+    - name: {{ .Values.mongo.user4name }}
+      db: {{ .Values.mongo.user4db }}
+      passwordSecretRef: # a reference to the secret that will be used to generate the user's password
+        {{- if .Values.mongoGamiHscCreds.existingSecret }}
+          name: {{ .Values.mongoGamiHscCreds.existingSecret }}
+        {{- else }}
+        name: mongodb-gamification-hsc-password
+        {{- end }}
+      roles:
+        - name: {{ .Values.mongo.user4role1name }}
+          db: {{ .Values.mongo.user4role1db }}
+      scramCredentialsSecretName: gamification-hsc-scram
+  additionalMongodConfig:
+    storage.wiredTiger.engineConfig.journalCompressor: {{ .Values.mongo.compressor }}
+  statefulSet:
+    spec:
+      selector:
+        matchLabels:
+          app: {{ .Values.global.mongo.service }}
+          app.kubernetes.io/component: {{ .Values.mongo.component }}
+      template:
+        metadata:
+          # label the pod which is used by the "labelSelector" in podAntiAffinty
+          # you can label it witch some other labels as well -- make sure it change the podAntiAffinity labelselector accordingly
+          labels:
+            app: {{ .Values.global.mongo.service }}
+            app.kubernetes.io/component: {{ .Values.mongo.component }}
+        spec:
+          containers:
+            - name: mongod
+              resources:
+                requests:
+                  memory: {{ .Values.mongod.memory }}
+                  cpu: {{ .Values.mongod.cpu }}
+                limits:
+                  memory: {{ .Values.mongod.memoryLimit }}
+                  cpu: {{ .Values.mongod.cpuLimit }}
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+                - weight: {{ .Values.affinity.weight }}
+                  podAffinityTerm:
+                    labelSelector:
+                      matchExpressions:
+                        - key: {{ .Values.affinity.key }}
+                          operator: {{ .Values.affinity.operator }}
+                          values:
+                            - {{ .Values.affinity.values }}
+                    topologyKey: {{ .Values.affinity.topologyKey }}
+      volumeClaimTemplates:
+        - metadata:
+            name: {{ .Values.volume.name }}
+          spec:
+            accessModes: [ {{ .Values.volume.accessModes }} ]
+            resources:
+              requests:
+                storage: {{ .Values.volume.storage }}
+# the user credentials will be generated from this secret
+# once the credentials are generated, this secret is no longer required

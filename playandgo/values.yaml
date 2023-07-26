@@ -1,0 +1,103 @@
+# Global Values
+
+global:
+  imagePullSecret: []
+  mySql:
+    service: mysql
+    port: 3306
+    db: aacDB
+    app: mysql
+  fakeSmtp:
+    service: fakesmtpserver-service
+    port: 8025
+    protocol: smtp
+    app: fakesmtpserver
+  aac:
+    service: aac-service
+    port: 8080
+  rabbit:
+    service: production-ready
+    port: 5672
+    virtualHost: gamification-engine
+  postgres:
+    service: postgresql-gm-cluster
+  mongo:
+    service: playngo-dev-mongodb-svc
+  gamification:
+    service: gamification-engine
+    port: 8010
+  minio:
+    name: myminio
+    poolName: pool-0
+    service: myminio-hl
+    bucket: playngo-dev
+    console: myminio-console
+    port: 9000
+    consolePort: 9443
+
+# Operators that should be installed:
+
+community-operator:
+  community-operator-crds:
+    enabled: false
+  enabled: true
+
+minio-operator:
+  operator:
+    imagePullSecrets: []
+  console:
+    imagePullSecrets: []
+  enabled: true
+  tenants: []
+
+postgres-operator:
+  enabled: true
+  image:
+    imagePullSecrets: []
+
+rabbitmq-cluster-operator:
+  global:
+    imagePullSecrets: []
+  enabled: true
+
+# Charts that should be installed:
+
+aacchart:
+  bootstrap:
+    uuid: u_fe939cab-1638-45b3-a604-80a3fb018e54
+    userId: 502e7f14-b6b3-49d3-8a00-ce2ed14f7a32
+    usersEmail: nori@fbk.eu
+    username: nori@fbk.eu
+  ingress:
+    annotations: 
+      nginx.ingress.kubernetes.io/rewrite-target: /
+  enabled: true
+
+fakesmtpchart:
+  enabled: true
+
+gamificationchart:
+  ingress:
+    annotations: 
+      nginx.ingress.kubernetes.io/rewrite-target: /
+  enabled: true
+
+miniochart:
+  minio:
+    imagePullSecret: ""
+  enabled: true
+
+mongoDB:
+  enabled: true
+
+mysqlchart:
+  enabled: true
+
+playandgochart:
+  ingress:
+    annotations: 
+      nginx.ingress.kubernetes.io/rewrite-target: /
+  enabled: true
+
+rabbitchart:
+  enabled: true

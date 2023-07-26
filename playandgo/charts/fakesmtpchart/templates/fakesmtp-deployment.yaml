@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fakesmtpserver
+  labels:
+    app: fakesmtpserver
+spec:
+  replicas: {{ .Values.deploy.replicas }}
+  selector:
+    matchLabels:
+      app: fakesmtpserver
+  template:
+    metadata:
+      labels:
+        app: fakesmtpserver
+    spec:
+      containers:
+      - name: fakesmtpserver
+        image: {{ .Values.deploy.image }}
+        ports:
+        - containerPort: {{ .Values.deploy.port1 }}
+        - containerPort: {{ .Values.deploy.port2 }}
+        - containerPort: {{ .Values.deploy.port3 }}
+        volumeMounts:
+        - name: {{ .Values.deploy.volumeName }}
+          mountPath: {{ .Values.deploy.mountPath }}
+          subPath: {{ .Values.deploy.subPath }}
+      imagePullSecrets: {{ .Values.global.imagePullSecret }}
+      volumes:
+        - name: {{ .Values.deploy.volumeName }}
+          secret:
+            secretName: fakesmtp

@@ -1,0 +1,33 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: default
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: default
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: {{.Release.Namespace}}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: default
+rules:
+  - apiGroups:
+      - "rabbitmq.com"
+    resources:
+      - namespaces
+      - pods
+      - vhosts
+      - users
+      - permissions
+    verbs:
+      - get
+      - watch
+      - list
+      - delete
+      - apply
+      - create

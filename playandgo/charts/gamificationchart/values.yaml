@@ -1,0 +1,156 @@
+# ConfigMap
+config:
+  tz: Europe/Rome
+  serverPort: "8010"
+  serverContextPath: /gamification
+  #gamificationReverseProxy: https://dev.smartcommunitylab.it/
+  logPath: /home/gamification/logs
+  managementContext: /manage
+  managementPort: "9000"
+  managementSecurityEnabled: "false"
+  mongoDbName: gamification-engine
+  aacRolesContext: COMPONENTS/GAMIFICATION
+  aacRolesRole: ROLE_PROVIDER
+  javaOpts: "-DstatsLoggerLevel=INFO -DlogFolder=/home/gamification/logs"
+  # aacUrl:
+  # aacClientId:
+  # aacClientSecret:
+  taskPersistenceActivate: "false"
+  statsLoggerLevel: INFO
+  # usersFile: /home/gamification/app/conf/users.yml
+  importDir: /home/gamification/data/import
+  exportDir: /home/gamification/data/export
+  rabbitmqEnabled: "true"
+  rabbitmqPngExchangeName: ge-notifications
+  rabbitmqPngRoutingKeyPrefix: game
+  zipkinEndpoint: http://zipkin:9411/
+  zipkinEnabled: "false"
+  samplerProb: "1.0"
+
+
+
+# Deployment
+deploy:
+  replicas: 1
+  type: RollingUpdate
+  maxUnavailable: 1
+  maxSurge: 1
+  fsGroup: 1005
+  containerImage: smartcommunitylab/gamification-engine:playAndGo-dev-v2-latest
+  cpuLimit: 2000m
+  memoryLimit: "512Mi"
+  cpuRequest: 1000m
+  memoryRequest: "256Mi"
+  imgPullPolicy: "Always"
+  runAsNonRoot: true
+  runAsUser: 1005
+  runAsGroup: 1005
+  port1: 9000
+  port2: 8010
+  mapKey: LOG_PATH
+
+# Volume
+volume:
+  name: user-file
+  mountPath: /home/gamification/app/conf
+
+# Global
+global:
+  imagePullSecret: ""
+  rabbit:
+    service: ""
+    virtualHost: ""
+    port: ""
+  postgres:
+    service: ""
+  mongo:
+    service: ""
+  gamification:
+    service: ""
+    port: ""
+
+# Creds:
+
+rabbituserGe:
+  existingSecret: ""
+  passwordKey: ""
+
+postgresGamification:
+  existingSecret: ""
+  passwordKey: ""
+
+users:
+  existingSecret: ""
+  passwordKey: ""
+
+mongoAdmin:
+  existingSecret: ""
+  passwordKey: ""
+
+mongoAuthDb:
+  existingSecret: ""
+  passwordKey: ""
+
+
+# Secrets:
+rabbitUser:
+  rabbituserGeUsername: gamification-engine
+  rabbituserGePwd: JJth4FPQA4vE9pc
+
+userData:
+  data: "users:
+  - username: long-rovereto
+    password: rov
+    role: ADMIN"
+
+mongoAdmin:
+  mongoadminUsername: admin
+  mongoadminPwd: dsGRqI9PJIdTasqz2owc
+
+mongoAuth:
+  db: admin
+
+#Postgres manifest
+manifest:
+  teamId: "postgresql"
+  size: 128Gi
+  istances: 1
+  stat1: superuser
+  stat2: createdb
+  gstats: gamificationstats
+  timescaledb: ""
+  postgreversion: "14"
+
+#Service:
+service:
+  protocol: TCP
+
+#Ingress:
+ingress:
+  annotations: {}
+  ingressClassName: ""
+  target: /
+  host: gamification.home
+  path: /
+  pathType: Prefix
+  tlsHost: ""
+  certManager: ""
+  tlsEnabled: false
+
+#Frontend:
+frontend:
+  replicas: 1
+  strategyType: RollingUpdate
+  maxUnavailable: 1
+  maxSurge: 1
+  image: smartcommunitylab/gamification-engine-frontend:dev6
+  cpuLimit: 1000m
+  memoryLimit: "512Mi"
+  cpuRequest: 512m
+  memoryRequest: "256Mi"
+  imagePullPolicy: "Always"
+  containerPort: 8080
+  service:
+    protocol: TCP
+    port: 8080
+    targetPort: 8080

@@ -1,0 +1,24 @@
+# Minio
+minio:
+  servers: 1
+  volumesPerServer: 4
+  volumeClaimName: data
+  accessModes: ReadWriteOnce
+  storage: 2Gi
+  imagePullSecret: ""
+
+creds:
+  existingSecret: ""
+  passwordKey: ""
+
+# Secret
+secret:
+  name: creds-secret
+  accessKey: "playandgo"
+  secretKey: "playandgo"
+
+# Global
+global:
+  minio:
+    name: ""
+    poolName: ""

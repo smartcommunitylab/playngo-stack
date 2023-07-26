@@ -1,0 +1,92 @@
+# Mongo
+mongo:
+  members: 3
+  type: ReplicaSet
+  version: "5.0.6"
+  promUser: prom
+  authMode: "SCRAM"
+  user1name: admin
+  user1db: admin
+  user1role1name: clusterAdmin
+  user1role1db: admin
+  user1role2name: userAdminAnyDatabase
+  user1role2db: admin
+  user2name: playngo-engine
+  user2db: admin
+  user2role1name: readWrite
+  user2role1db: playngo-engine
+  user3name: mongodb-gamification-engine
+  user3db: admin
+  user3role1name: readWrite
+  user3role1db: gamification-engine
+  user4name: mongodb-gamification-hsc
+  user4db: admin
+  user4role1name: readWrite
+  user4role1db: gamification-hsc
+  compressor: zlib
+  component: mongodb
+
+# Mongod
+mongod:
+  memory: "512Mi"
+  cpu: "1000m"
+  memoryLimit: "1024Mi"
+  cpuLimit: "2000m"
+
+# Affinity
+affinity:
+  weight: 100
+  key: app.kubernetes.io/component
+  operator: In
+  values: mongodb
+  topologyKey: kubernetes.io/hostname
+
+# Global
+global:
+  mongo:
+    service: ""
+
+# Volume
+volume:
+  name: data-volume
+  accessModes: "ReadWriteOnce"
+  storage: 32Gi
+
+# Mongo creds:
+mongoAdminCredsCreds:
+  existingSecret: ""
+  passwordKey: ""
+
+mongoPlayngoCreds:
+  existingSecret: ""
+  passwordKey: ""
+
+mongoGamificationCreds:
+  existingSecret: ""
+  passwordKey: ""
+
+mongoGamiHscCreds:
+  existingSecret: ""
+  passwordKey: ""
+
+mongoMetricCreds:
+  existingSecret: ""
+  passwordKey: ""
+
+
+# Secrets:
+mongodbAdminSecret:
+  password: dsGRqI9PJIdTasqz2owc
+
+mongodbPlaySecret:
+  password: 22doU8KJOurBHEpwbzhu
+
+mongodbGamiEngineSecret:
+  password: JA241EKkJn42UAtLOdfT
+
+mongodbGamiHscSecret:
+  password: 8nGgyIIwS77TGh2AAa9k
+
+mongodbMetricSecret:
+  password: SK1vAVcNwOpCMCWaHV6B
+  username: prom

@@ -1,0 +1,69 @@
+realms:
+  - name: "play and go"
+    slug: "playandgo"
+    public: true
+    identityProviders: 
+      - provider: tinternal
+        authority: internal   
+        name: internal
+        type: identity           
+      - provider: tpassword
+        authority: password   
+        name: password
+        type: identity        
+     
+    clientApps:
+      - clientId: {{ .Values.bootstrap.clientId }}
+        type: "oauth2"
+        name: "test client basic"
+        description: "test client"
+        configuration:
+            authorizedGrantTypes:
+              - "refresh_token"
+              - "authorization_code"
+              - "client_credentials"
+              - "implicit"
+            redirectUris:
+              - "it.dslab.playgo.stage://callback"
+              - "it.dslab.playgo.stage://endsession"
+              - "http://localhost:8100/auth/callback"
+              - "it.dslab.playgo://auth/endsession"
+              - "http://localhost:4200/"
+            accessTokenValidity: 864000
+            authenticationMethods:
+              - "client_secret_basic"
+              - "client_secret_post"
+              - "none"
+            firstParty: true
+            clientSecret: {{ .Values.bootstrap.clientSecret }}
+            tokenType: "jwt"
+        scopes:
+          - "openid"
+          - "offline_access"
+          - "email"
+          - "profile"
+          - "profile.pgroles.me"
+        resourceIds: [
+            ]
+        providers:
+          - "tpassword"      
+        
+    users:
+      - uuid: {{ .Values.bootstrap.uuid }}
+        userId: {{ .Values.bootstrap.userId }}
+        username: {{ .Values.bootstrap.username }}
+        email: {{ .Values.bootstrap.usersEmail }}
+        type: account:internal
+        authority: internal
+        provider: tinternal
+        name: Test
+        surname: User       
+        confirmed: true       
+    
+    credentials:
+      - type: credentials:password
+        authority: password
+        provider: tpassword
+        id: 9a5623f8-1f1e-4ac0-bd15-394721fe1778        
+        username: {{ .Values.bootstrap.username }}
+        password: {{ .Values.bootstrap.credentialsPassword }}

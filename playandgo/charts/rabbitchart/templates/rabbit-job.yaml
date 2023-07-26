@@ -1,0 +1,24 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: checkrabbit
+spec:
+  template:
+    spec:
+      containers:
+      - name: populate-rabbit
+        image: bitnami/kubectl:latest
+        command: ['bash', '-c', "echo \"$(RABBITVALUES)\" | kubectl -n {{.Release.Namespace}} apply -f -;"]
+        env:
+          - name: RABBITVALUES 
+            valueFrom:
+              secretKeyRef:
+                name: rabbit-data-secret
+                key: rabbit.yaml
+      imagePullSecrets: {{ .Values.global.imagePullSecret }}
+      initContainers:
+      - name: check-rabbit
+        image: curlimages/curl:7.85.0
+        command: ['sh', '-c', "until curl http://{{ .Values.global.rabbit.service }}:15672 -m 3; do echo waiting for rabbit service; sleep 2; done"]
+      restartPolicy: Never
+  backoffLimit: 4

@@ -1,0 +1,163 @@
+# Config
+config:
+  name: playngo-engine-configmap
+  tz: Europe/Rome
+  
+  rabbitmqGeExchangeName: ge-notifications
+  rabbitmqGeRoutingKeyPrefix: game
+
+  validationShape: /home/playngo/data/validation
+  notificationDir: /home/playngo/data/notification
+  springHttpMultipartMaxFileSize: 10MB
+  springHttpMultipartMaxRequestSize: 10MB
+  javaOpts: -XX:MaxRAMPercentage=50
+  aziendeEndpoint: ""
+
+  mailFrom: fbk.eu
+
+  mongoDbName: playngo-engine
+  challengeDir: /home/playngo/data/challenges
+
+  logs: /home/playngo/data/logs
+
+  aacAdminRealm: playandgo
+
+
+
+  gamificationCron: 0 0 * * * ?
+
+  logLevel: info
+  zipkinEndpoint: http://zipkin:9411/
+  zipkinEnabled: "false"
+
+  samplerProb: "1.0"
+
+# Global
+
+global:
+  imagePullSecret: ""
+  mySql:
+    service: ""
+    port: ""
+    db: ""
+  fakeSmtp:
+    service: ""
+    port: ""
+    protocol: ""
+  aac:
+    service: ""
+    port: ""
+  rabbit:
+    service: ""
+    port: ""
+    virtualHost: ""
+  postgres:
+    service: ""
+  mongo:
+    service: ""
+  gamification:
+    service: ""
+    port: ""
+  minio:
+    name: ""
+    poolName: ""
+    service: ""
+    bucket: ""
+    console: ""
+    port: ""
+    consolePort: ""
+
+# Deploy:
+deploy:
+  replicas: 1
+  strategyType: RollingUpdate
+  maxUnavailable: 1
+  maxSurge: 1
+  fsGroup: 1005
+  image: smartcommunitylab/playngo-engine:v2-dev-latest
+  runAsNonRoot: true
+  runAsUser: 1005
+  runAsGroup: 1005
+  memoryLimit: "2048Mi"
+  memoryReqyest: "256Mi"
+  imagePullPolicy: "Always"
+  containerPort: 7012
+  volume1Name: validation-shape
+  volume1Path: /home/playngo/data/validation
+  volume2Name: notification-dir
+  volume2Path: /home/playngo/data/notification
+  volume3Name: challenges-dir
+  volume3Path: /home/playngo/data/challenges
+  volume4Name: logs-dir
+  volume4Path: /home/playngo/data/logs
+
+# Volumes
+volume:
+  name1: validation-shape
+  pvc1: playngo-engine-validation-pvc
+  name2: notification-dir
+  pvc2: playngo-engine-notification-pvc
+  name3: challenges-dir
+  pvc3: playngo-engine-challenges-pvc
+  name4: logs-dir
+  pvc4: playngo-engine-logs-pvc
+
+# Creds:
+creds:
+  gamification:
+    existingSecret: ""
+    passwordKey: ""
+  rabbitUserPg:
+    existingSecret: ""
+    passwordKey: ""
+  rabbitUserGe:
+    existingSecret: ""
+    passwordKey: ""
+  minio:
+    existingSecret: ""
+    passwordKey: ""
+  smtpUser:
+    existingSecret: ""
+    passwordKey: ""
+  aziende:
+    existingSecret: ""
+    passwordKey: ""
+  gcmSender:
+    existingSecret: ""
+    passwordKey: ""
+
+# Secrets:
+secrets:
+  gamificationUsername: long-rovereto
+  gamificationPwd: rov
+  gamificationSk1: OLBivF9578nlX4ja
+  gamificationSk2: zzdVJMZ2BbxqwKQO
+  rabbitUserPgUsername: playngo-engine
+  rabbitUserPgPwd: ohTBNuZzNEBum3aYXGWv
+  minioAk: cGxheWFuZGdv
+  minioSk: cGxheWFuZGdv
+  aacClientId: test-0000-12345-client
+  aacClientSecret: eSHUuN24ao3FfWRm7CJYnuiK98sjuRg8
+  aziendePwd: "test"
+  aziendeUsername: admin
+  gcmSenderApiKey: "test"
+  gcmSenderId: "test"
+
+# Service:
+service:
+  portProtocol: TCP
+  portName: http
+  port: 7012
+  targetPort: 7012
+
+#Ingress:
+ingress:
+  annotations: {}
+  ingressClassName: ""
+  target: /
+  host: playngo.home
+  path: /
+  pathType: Prefix
+  tlsHost: ""
+  certManager: ""
+  tlsEnabled: false
