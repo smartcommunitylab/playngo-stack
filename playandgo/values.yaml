@@ -63,11 +63,6 @@ rabbitmq-cluster-operator:
 # Charts that should be installed:
 
 aacchart:
-  bootstrap:
-    uuid: u_fe939cab-1638-45b3-a604-80a3fb018e54
-    userId: 502e7f14-b6b3-49d3-8a00-ce2ed14f7a32
-    usersEmail: nori@fbk.eu
-    username: nori@fbk.eu
   ingress:
     annotations: 
       nginx.ingress.kubernetes.io/rewrite-target: /
